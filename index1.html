@@ -1,0 +1,221 @@
+<html lang="en">
+    <head>
+	<meta charset="utf-8">
+	<title> Project 1 </title>
+	<script src="https://d3js.org/d3.v4.js"></script>
+	<script type="text/javascript" src="https://d3js.org/d3.v3.min.js"></script>
+	<script type="text/javascript" src="https://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+	<style>
+    		text { 
+			font-family: Arial; 
+			font-size: 15px;
+		}
+		.axis path, .axis line {
+			fill: none;
+			stroke: yellowgreen;
+			shape-rendering: crispEdges;
+		}
+		
+
+		.tick text {
+			fill: yellowgreen;
+			font-size: 11px;
+		}
+
+		rect {
+			stroke: white;
+		}
+		.bar1 {
+  			fill: orange;
+		}
+		.bar1:hover {
+ 			fill: orangered ;
+		}
+
+		.d3-tip {
+  			line-height: 1;
+  			font-weight: bold;
+  			padding: 12px;
+  			background: rgba(120, 172, 96, 0.8);
+  			color: #fff;
+  			border-radius: 2px;
+		}
+
+		/* Creates a small triangle extender for the tooltip */
+		.d3-tip:after {
+ 			box-sizing: border-box;
+  			display: inline;
+  			font-size: 10px;
+ 			width: 100%;
+  			line-height: 1;
+ 			color: rgba(223, 142, 160, 0.8);
+ 			content: "\25BC";
+  			position: absolute;
+  			text-align: center;
+		}
+
+		/* Style northward tooltips differently */
+		.d3-tip.n:after {
+  			margin: -1px 0 0 0;
+  			top: 100%;
+  			left: 0;
+		}
+	</style>
+    </head>
+    <body>
+ 
+<h1>Deaths analysis chart based on age and gender  </h1>
+
+	<svg id="age_distribution" width="650" height="400">
+		<text id='label' x='200' y='100'> Age Based Deaths Chart</text>
+		<g transform="translate(150,400)"></g>
+	</svg>
+
+	<svg id="gender_distribution" width="550" height="400">
+		<text id='label' x='150' y='20'> Gender Based Deaths chart</text>
+		<g transform="translate(200,400)"></g>
+	</svg>
+	<h1>Reference</h1>
+	<p>https://d3js.org/</p>
+	<p>	https://www.d3-graph-gallery.com/</p>
+	<p> https://d3-wiki.readthedocs.io/zh_CN/master/Upgrading-to-3.0/</p>
+
+
+ 	<script type="text/javascript">
+	    var CHART_WIDTH = 450;
+	    var CHART_HEIGHT = 450;
+	    
+	    d3.csv("data/pumps.csv", function(data){
+		    pumps_loc = data;
+		    console.log(pumps_loc);
+		    	
+		d3.csv("data/workhouse.csv", function(data){
+		    workhouse_loc = data;
+		   d3.csv("data/brewery.csv", function(data){
+		    brewery_loc = data;
+			d3.csv("data/deaths_age_sex.csv", function(data){
+		    deaths = data;
+		    console.log(deaths);
+		    	d3.json("data/streets.json",function(data) {
+		    streets=data;
+		    console.log(streets);
+		   // drawMap(deaths);
+	    });
+	    	});
+	    	});			    
+	    	});
+	    });
+	    
+	    
+
+	    
+		d3.csv("data/age_distribution.csv", function(data){
+			drawAge(data)
+		});
+			
+		function drawAge(data)
+		{
+		
+			var xScale = d3.scale.ordinal();
+			var yScale = d3.scale.linear();
+			xScale.domain(data.map(function(d) { return d.age; })).rangeRoundBands([0, 510], 0.1);
+			
+			yScale.domain([0,200]).range( [0,150]);			
+
+			var rect = d3.select('#age_distribution').select('g').selectAll(".bar2").data(data);
+
+			var xAxis = d3.svg.axis()
+    			   .scale(xScale)
+    		 	   .orient("bottom")			
+	  
+ 			d3.select('#age_distribution').select('g').append('g')
+      			   .attr("class", "axis")
+      			   .attr("transform","translate(0," +-130 + ")")
+            		   .call(xAxis)
+			  .selectAll("text")
+   			   .attr("y", 13)
+    			   .attr("x", -13)
+   			   .attr("dy", ".35em")
+    			   .attr("transform", "rotate(0)")
+   			   .style("text-anchor", "start");
+		
+
+			rect.enter().append("rect")
+			  .attr("width", 20)
+			  .attr("height", function (d){return yScale(d.deaths); }) 
+			  .style("fill","lightblue")
+			  
+
+			rect
+			  .attr("class", "bar2")
+			  .attr("x", function (d) {return xScale(d.age); })
+			  .attr("y", function (d){ return -130- yScale(d.deaths); })
+			  
+			  .call(tip_deaths)
+			  .on('mouseover', tip_deaths.show)
+			  .on('mouseout', tip_deaths.hide);
+			  
+			  
+		}
+
+		d3.csv("data/gender_distribution.csv", function(data){
+			drawGender(data)
+		});
+
+		function drawGender(data)
+		{
+			var xScale = d3.scale.ordinal();
+			var yScale = d3.scale.linear();
+			xScale.domain(data.map(function(d) { return d.gender; })).rangeRoundBands([0, 210], 0.1);
+			
+			yScale.domain([0,200]).range( [0,150]);			
+
+			var rect = d3.select('#gender_distribution').select('g').selectAll(".bar2").data(data);
+
+			var xAxis = d3.svg.axis()
+    			   .scale(xScale)
+    		 	   .orient("bottom")			
+	  
+ 			d3.select('#gender_distribution').select('g').append('g')
+      			   .attr("class", "axis")
+      			   .attr("transform","translate(0," +-130 + ")")
+            		   .call(xAxis)
+			  .selectAll("text")
+   			   .attr("y", 13)
+    			   .attr("x", -13)
+   			   .attr("dy", ".35em")
+    			   .attr("transform", "rotate(0)")
+   			   .style("text-anchor", "start");
+		
+
+			rect.enter().append("rect")
+			  .attr("width", 15)
+			  .attr("height", function (d){return yScale(d.deaths); }) 
+			  .style("fill", function (d){if(d.gender=='male') return "yellow"; else return "orange"})
+
+			rect
+			  .attr("class", "bar2")
+			  .attr("x", function (d) {return xScale(d.gender); })
+			  .attr("y", function (d){ return -130- yScale(d.deaths); })
+			  
+			  .call(tip_deaths)
+			  .on('mouseover', tip_deaths.show)
+			  .on('mouseout', tip_deaths.hide);
+			  
+			  
+		}		
+
+		var tip_deaths = d3.tip()
+  		.attr('class', 'd3-tip')
+	  	.offset([-10, 0])
+  		.html(function(d) {
+    			return "<strong>Deaths:</strong> <span style='color:red'>" + d.deaths + "</span>";
+  		})		
+
+// 	
+		
+	</script>
+    </body>
+</html>
+
+		
